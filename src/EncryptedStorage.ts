@@ -12,6 +12,25 @@ export type StorageValueCallback = (error?: Error, value?: string) => void;
 
 export default class EncryptedStorage {
   /**
+   * Returns true if device has passcode/faceid/touchid set and therefore protects user's data.
+   * If this returns false the app should tell user to provide an app-specific password.
+   */
+   static isDeviceProtected(): Promise<boolean>;
+
+   /**
+    * Returns true if device has passcode/faceid/touchid set and therefore protects user's data.
+    * @param {Function} cb - The function to call when the operation completes.
+    */
+  static isDeviceProtected(cb: StorageErrorCallback): void;
+  static isDeviceProtected(cb?: StorageErrorCallback): void | Promise<boolean> {
+    if (cb) {
+      RNEncryptedStorage.isDeviceProtected().then(cb).catch(cb);
+      return;
+    }
+    return RNEncryptedStorage.isDeviceProtected();
+  }
+ 
+  /**
    * Writes data to the disk, using SharedPreferences or KeyChain, depending on the platform.
    * @param {string} key - A string that will be associated to the value for later retrieval.
    * @param {string} value - The data to store.

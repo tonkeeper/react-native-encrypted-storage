@@ -27,6 +27,65 @@ void rejectPromise(NSString *message, NSError *error, RCTPromiseRejectBlock reje
 
 RCT_EXPORT_MODULE();
 
+RCT_EXPORT_METHOD(isDeviceProtected:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    BOOL apiAvailable = (kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly != NULL);
+
+    if (!apiAvailable) {
+        resolve(@NO);
+        return;
+    }
+
+    OSStatus status;
+
+    // delete the item to resolve some entitlements and security issues when running from Xcode debugger
+    {
+        NSDictionary *query = @{
+                                (__bridge id)kSecClass:  (__bridge id)kSecClassGenericPassword,
+                                (__bridge id)kSecAttrService: @"LocalDeviceServices",
+                                (__bridge id)kSecAttrAccount: @"ProbeAccount"
+                                };
+
+        status = SecItemDelete((__bridge CFDictionaryRef)query);
+        if (status == errSecSuccess || status == errSecItemNotFound) {
+            // okay: we either had no probe as expected, or cleaned up a leftover from the previous check
+        } else {
+            NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:status userInfo: nil];
+            rejectPromise(@"Unexpected error occured while removing the probe keychain item", error, reject);
+            return;
+        }
+    }
+
+    NSData* probeValue = [@"ProbeValue" dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *attributes = @{
+                                 (__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+                                 (__bridge id)kSecAttrService: @"LocalDeviceServices",
+                                 (__bridge id)kSecAttrAccount: @"ProbeAccount",
+                                 (__bridge id)kSecValueData: probeValue,
+                                 (__bridge id)kSecAttrAccessible: (__bridge id)kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+                                 };
+
+    status = SecItemAdd((__bridge CFDictionaryRef)attributes, NULL);
+    if (status == errSecSuccess) { // item added okay, passcode has been set
+        NSDictionary *query = @{
+                                (__bridge id)kSecClass:  (__bridge id)kSecClassGenericPassword,
+                                (__bridge id)kSecAttrService: @"LocalDeviceServices",
+                                (__bridge id)kSecAttrAccount: @"ProbeAccount"
+                                };
+        
+        status = SecItemDelete((__bridge CFDictionaryRef)query);
+
+        if (status != errSecSuccess) {
+            NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:status userInfo: nil];
+            rejectPromise(@"Unexpected error occured while removing the probe keychain item", error, reject);
+            return;
+        }
+        resolve(@YES);
+    } else {
+        resolve(@NO);
+    }
+}
+
 RCT_EXPORT_METHOD(setItem:(NSString *)key withValue:(NSString *)value resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSData* dataFromValue = [value dataUsingEncoding:NSUTF8StringEncoding];
