@@ -95,12 +95,32 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key withValue:(NSString *)value resolver:(
         rejectPromise(@"An error occured while parsing value", error, reject);
         return;
     }
+
+    SecAccessControlRef accessControlRef = SecAccessControlCreateWithFlags(
+        // default allocator
+        NULL,
+
+        // We don't use "WhenPasscodeSet" for two reasons:
+        // 1) in case the user does not have passcode set we'd need to use "when unlocked this device only" anyway.
+        // 2) if we use "when passcode set" flag when the passcode is set,
+        //    then the wallet will unexpectedly stop working (item will be erased)
+        //    if the user turns the passcode off and on.
+        // "ThisDeviceOnly" is set in order to prevent unexpected backups
+        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+
+        // Requires any biometrics OR device passcode to read the item.
+        // Biometry may be re-enrolled and the item will still be accessible.
+        kSecAccessControlUserPresence,
+
+        // No error out reference — this call never fails for these parameters.
+        NULL);
     
     // Prepares the insert query structure
     NSDictionary* storeQuery = @{
         (__bridge id)kSecClass : (__bridge id)kSecClassGenericPassword,
         (__bridge id)kSecAttrAccount : key,
-        (__bridge id)kSecValueData : dataFromValue
+        (__bridge id)kSecValueData : dataFromValue,
+        (__bridge id)kSecAttrAccessControl: (__bridge id)accessControlRef
     };
     
     // Deletes the existing item prior to inserting the new one
