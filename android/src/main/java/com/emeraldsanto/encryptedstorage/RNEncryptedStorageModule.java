@@ -28,6 +28,8 @@ public class RNEncryptedStorageModule extends ReactContextBaseJavaModule {
         try {
             MasterKey key = new MasterKey.Builder(context)
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    // Internally, JetPack's MasterKey implementation sets (Biometric || Device Passcode) on the KeyGenParameterSpec.
+                    .setUserAuthenticationRequired(true, 10)
                     .build();
 
             this.sharedPreferences = EncryptedSharedPreferences.create(
