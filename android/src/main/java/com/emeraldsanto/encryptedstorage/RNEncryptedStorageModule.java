@@ -1,6 +1,7 @@
 package com.emeraldsanto.encryptedstorage;
 
 import android.content.Context;
+import android.content.ContentResolver
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.provider.Settings;
