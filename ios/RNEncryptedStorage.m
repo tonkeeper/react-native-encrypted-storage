@@ -13,7 +13,7 @@
 void rejectPromise(NSString *message, NSError *error, RCTPromiseRejectBlock rejecter)
 {
     NSString* errorCode = [NSString stringWithFormat:@"%ld", error.code];
-    NSString* errorMessage = [NSString stringWithFormat:@"RNEncryptedStorageError: %@", message];
+    NSString* errorMessage = [NSString stringWithFormat:@"Keychain: %@ (code %@)", message, errorCode];
 
     rejecter(errorCode, errorMessage, error);
 }
@@ -51,7 +51,7 @@ RCT_EXPORT_METHOD(isDeviceProtected:(RCTPromiseResolveBlock)resolve rejecter:(RC
             // okay: we either had no probe as expected, or cleaned up a leftover from the previous check
         } else {
             NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:status userInfo: nil];
-            rejectPromise(@"Unexpected error occured while removing the probe keychain item", error, reject);
+            rejectPromise(@"Failed to remove the probe keychain item", error, reject);
             return;
         }
     }
@@ -77,7 +77,7 @@ RCT_EXPORT_METHOD(isDeviceProtected:(RCTPromiseResolveBlock)resolve rejecter:(RC
 
         if (status != errSecSuccess) {
             NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:status userInfo: nil];
-            rejectPromise(@"Unexpected error occured while removing the probe keychain item", error, reject);
+            rejectPromise(@"Failed to remove the probe keychain item", error, reject);
             return;
         }
         resolve(@YES);
@@ -92,7 +92,7 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key withValue:(NSString *)value resolver:(
     
     if (dataFromValue == nil) {
         NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:0 userInfo: nil];
-        rejectPromise(@"An error occured while parsing value", error, reject);
+        rejectPromise(@"Failed to parse value", error, reject);
         return;
     }
 
@@ -134,7 +134,7 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key withValue:(NSString *)value resolver:(
     
     else {
         NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:insertStatus userInfo: nil];
-        rejectPromise(@"An error occured while saving value", error, reject);   
+        rejectPromise(@"Failed to save item", error, reject);   
     }
 }
 
@@ -161,7 +161,7 @@ RCT_EXPORT_METHOD(getItem:(NSString *)key resolver:(RCTPromiseResolveBlock)resol
     
     else {
         NSError* error = [NSError errorWithDomain: [[NSBundle mainBundle] bundleIdentifier] code:getStatus userInfo:nil];
-        rejectPromise(@"An error occured while retrieving value", error, reject);
+        rejectPromise(@"Failed to retrieve item", error, reject);
     }
 }
 
@@ -181,7 +181,7 @@ RCT_EXPORT_METHOD(removeItem:(NSString *)key resolver:(RCTPromiseResolveBlock)re
     
     else {
         NSError* error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:removeStatus userInfo: nil];
-        rejectPromise(@"An error occured while removing value", error, reject);
+        rejectPromise(@"Failed to remove item", error, reject);
     }
 }
 
