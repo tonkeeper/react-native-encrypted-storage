@@ -110,7 +110,11 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key withValue:(NSString *)value resolver:(
 
         // Requires any biometrics OR device passcode to read the item.
         // Biometry may be re-enrolled and the item will still be accessible.
+        #if TARGET_OS_SIMULATOR
+        0, // on Simulator with iOS 15, setItem() returns errSecAuthFailed/–25293.
+        #else
         kSecAccessControlUserPresence,
+        #endif
 
         // No error out reference — this call never fails for these parameters.
         NULL);
