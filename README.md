@@ -1,4 +1,13 @@
 # React Native Encrypted Storage
+
+## Archived
+
+This repository is archived and no longer maintained.
+
+The project is stale, the example app is not kept running on current React Native versions, and security issues are not being triaged or fixed. Do not use this package for new production work, especially for storing sensitive data.
+
+There is no bug bounty or vulnerability reward program for this repository. Security reports, issues, and pull requests may not receive a response. Existing users should migrate to an actively maintained storage solution or maintain their own fork.
+
 React Native wrapper around SharedPreferences and Keychain to provide a secure alternative to [Async Storage](https://github.com/react-native-community/async-storage).
 
 ## Why ?
